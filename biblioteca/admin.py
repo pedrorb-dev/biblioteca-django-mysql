@@ -1,5 +1,7 @@
 from django.contrib import admin
 from .models import *
+from admin_extra_buttons.api import ExtraButtonsMixin, button, confirm_action
+from django.http import HttpRequest, HttpResponse, JsonResponse
 
 # Register your models here.
 
@@ -7,8 +9,24 @@ admin.site.site_header="Sistema ITCG"
 admin.site.site_title="Sistema Gestor de Biblioteca"
 admin.site.index_title="Administración Biblioteca"
 
-#admin.site.register(Carrera)
-@admin.register(Carrera)
+
+class BtnExportar(ExtraButtonsMixin, admin.ModelAdmin):
+    @button(html_attrs={"style": "background-color:#DC6C6C;color:black"})
+    def confirm(self: ExtraButtonsMixin, request: HttpRequest) -> HttpResponse:
+        def _action(request: HttpRequest) -> None:
+            pass
+
+        return confirm_action(
+            self,
+            request,
+            _action,
+            message="Accion Confirmada",
+            success_message="La acción se ha realizado correctamente.",
+        )
+    
+
+admin.site.register(Carrera, BtnExportar)
+#@admin.register(Carrera)
 class CarreraAdmin(admin.ModelAdmin):
     list_display = ('id_carrera', 'nombre')
     list_filter = ('id_carrera', 'nombre')
