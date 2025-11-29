@@ -14,6 +14,7 @@ from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from .models import *
 from django.conf import settings
 import subprocess
+from django.db import connection
 
 # Register your models here.
 
@@ -34,7 +35,6 @@ class MyAdminSite(AdminSite):
         return my_urls + urls
 
     def _get_mysql_settings(self):
-        """Extrae host, port, user, password, dbname desde settings.DATABASES['default']"""
         db = settings.DATABASES.get('default', {})
         engine = db.get('ENGINE', '')
         if 'mysql' not in engine:
@@ -176,14 +176,12 @@ class MyAdminSite(AdminSite):
         except Exception as e:
             messages.error(request, f"Error durante la restauración: {e}")
         finally:
-            # limpiar archivos temporales
             try:
                 if tmp_path and os.path.exists(tmp_path):
                     os.remove(tmp_path)
             except:
                 pass
-            # borrar extraídos
-            # (si los sql_files no están en tmp_path y existen, eliminarlos)
+
             try:
                 for f in sql_files:
                     if os.path.exists(f):
@@ -193,7 +191,6 @@ class MyAdminSite(AdminSite):
 
         return HttpResponseRedirect(reverse(f'{self.name}:index'))
 
-    # Si ya tienes index override, mantén y añade contexto si quieres
     def index(self, request, extra_context=None):
         extra = extra_context or {}
         extra.update({'mysql_restore_help': 'Sube un .sql (o .zip con .sql) para restaurar la BD.'})
